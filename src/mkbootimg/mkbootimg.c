@@ -210,7 +210,7 @@ int mkbootimg_main(int argc, char **argv)
     fread(&config, sizeof(config), 1, fp_info);
     fclose(fp_info);
     base = config.kernel_base;
-    cmdline = config.kernel_cmdline;
+    cmdline = config.cmdline;
     ramdisk_offset = config.ramdisk_offset;
     second_offset = config.second_offset;
     tags_offset = config.tags_offset;

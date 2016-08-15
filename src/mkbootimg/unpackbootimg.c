@@ -110,6 +110,7 @@ int unpackbootimg_main(int argc, char** argv)
     config.second_offset = header.second_addr - header.kernel_addr + 0x00008000;
     config.tags_offset = header.tags_addr - header.kernel_addr + 0x00008000;
     config.page_size = header.page_size;
+    strncpy((char *)config.cmdline, header.cmdline, BOOT_ARGS_SIZE - 1);
     config.mtk_flag = 0;
 
     total_read += sizeof(header);

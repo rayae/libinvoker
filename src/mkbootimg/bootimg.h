@@ -67,7 +67,7 @@ struct boot_img_hdr
 };
 typedef struct Configuration
 {
-    unsigned char kernel_cmdline[BOOT_ARGS_SIZE];
+    unsigned char cmdline[BOOT_ARGS_SIZE];
     unsigned kernel_base;
     unsigned ramdisk_offset;
     unsigned second_offset;

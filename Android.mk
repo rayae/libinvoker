@@ -5,6 +5,10 @@ LOCAL_SRC_FILES += src/main/img2simg.c src/main/simg2img.c
 LOCAL_SRC_FILES += src/main/mkcpio.c src/main/uncpio.c
 LOCAL_SRC_FILES += src/main/minigzip.c
 LOCAL_SRC_FILES += src/main/sdat2img.c
+LOCAL_SRC_FILES += src/main/split_app.c
+LOCAL_SRC_FILES += src/toolbox/dd.c
+LOCAL_SRC_FILES += src/toolbox/envalid.c
+
 
 LOCAL_SRC_FILES += src/mkbootimg/mkbootimg.c src/mkbootimg/unpackbootimg.c src/mkbootimg/sha.c
 
@@ -31,7 +35,7 @@ LOCAL_C_INCLUDES := src/include
 LOCAL_MODULE := invoker
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
-LOCAL_LDFLAGS := -static
-LOCAL_CFLAGS := -DANDROID
+LOCAL_LDFLAGS := -static -fno-stack-protector
+LOCAL_CFLAGS := -DANDROID -fno-stack-protector
 
 include $(BUILD_EXECUTABLE)

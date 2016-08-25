@@ -24,6 +24,12 @@ int main(int argc, char *argv[])
 		return simg2img_main(argc, argv);
 	}else if(!strcmp(arg, "minigzip")){
 		return minigzip_main(argc, argv);
+	}else if(!strcmp(arg, "split_app")){
+		return split_app_main(argc, argv);
+	}else if(!strcmp(arg, "dd")){
+		return dd_main(argc, argv);
+	}else if(!strcmp(arg, "envalid")){
+		return envalid(argv[1]);
 	}
 	return 1;
 }

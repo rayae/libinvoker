@@ -301,24 +301,26 @@ int mkbootimg_main(int argc, char **argv)
 
     if(write(fd, &hdr, sizeof(hdr)) != sizeof(hdr)) goto fail;
     if(write_padding(fd, pagesize, sizeof(hdr))) goto fail;
-
+    printf("Writing kernel...\n");
     if(write(fd, kernel_data, hdr.kernel_size) != (ssize_t) hdr.kernel_size) goto fail;
     if(write_padding(fd, pagesize, hdr.kernel_size)) goto fail;
-
     if(config.mtk_flag == 1) {
         // generate Mediatek header
+        printf("Writing Mediatek header...\n");
         void *mtk_hdr_data = gen_header(image_type, hdr.ramdisk_size);
         if(write(fd, mtk_hdr_data, MTK_MAGIC_SIZE) != MTK_MAGIC_SIZE) goto fail;
     }
+    printf("Writing ramdisk...\n");
     if(write(fd, ramdisk_data, hdr.ramdisk_size) != (ssize_t) hdr.ramdisk_size) goto fail;
     if(config.mtk_flag == 1)
         hdr.ramdisk_size += MTK_MAGIC_SIZE;
     if(write_padding(fd, pagesize, hdr.ramdisk_size)) goto fail;
-
+    printf("Writing second...\n");
     if(second_data) {
         if(write(fd, second_data, hdr.second_size) != (ssize_t) hdr.second_size) goto fail;
         if(write_padding(fd, pagesize, hdr.second_size)) goto fail;
     }
+    printf("Writing dt.img...\n");
     if(dt_data) {
         if(write(fd, dt_data, hdr.dt_size) != (ssize_t) hdr.dt_size) goto fail;
         if(write_padding(fd, pagesize, hdr.dt_size)) goto fail;

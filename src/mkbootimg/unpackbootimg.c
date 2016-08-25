@@ -132,7 +132,7 @@ int unpackbootimg_main(int argc, char** argv)
     byte* chkram = (byte *) malloc(MTK_MAGIC_SIZE);
     fread(chkram, MTK_MAGIC_SIZE, 1, f);
     if(check_mtk_header(chkram)){
-        //printf("Processing Mediatek ramdisk header...\n");
+        printf("Processing Mediatek ramdisk header...\n");
         config.mtk_flag = 1;
         config.image_type = get_mtk_image_type(chkram);
     }else{

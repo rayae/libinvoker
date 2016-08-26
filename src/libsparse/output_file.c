@@ -33,7 +33,6 @@
 #include "output_file.h"
 #include "sparse_crc32.h"
 #include "sparse_format.h"
-
 #ifndef USE_MINGW
 #include <sys/mman.h>
 #define O_BINARY 0
@@ -41,12 +40,12 @@
 #define ftruncate64 ftruncate
 #endif
 
-#if defined(__APPLE__) && defined(__MACH__)
+//#if defined(__APPLE__) && defined(__MACH__)
 #define lseek64 lseek
 #define ftruncate64 ftruncate
 #define mmap64 mmap
 #define off64_t off_t
-#endif
+//#endif
 
 #define min(a, b) \
   ({ typeof(a) _a = (a); typeof(b) _b = (b); (_a < _b) ? _a : _b; })

@@ -118,12 +118,17 @@ int unpackbootimg_main(int argc, char** argv)
     printf("\nExtracting kernel...\n");
     sprintf(tmp, "%s/%s", directory, "zImage");
     FILE *k = fopen(tmp, "wb");
+    if(!k){
+        fclose(f);
+        return 1;
+    }
     byte* kernel = (byte*)malloc(header.kernel_size);
     //printf("Reading kernel...\n");
     fread(kernel, header.kernel_size, 1, f);
     total_read += header.kernel_size;
     fwrite(kernel, header.kernel_size, 1, k);
     fclose(k);
+    free(kernel);
 
     //printf("total read: %d\n", header.kernel_size);
     total_read += read_padding(f, header.kernel_size, pagesize);
@@ -138,6 +143,7 @@ int unpackbootimg_main(int argc, char** argv)
     }else{
         fseek(f, -MTK_MAGIC_SIZE, SEEK_CUR);
     }
+    free(chkram);
     byte* ramdisk = (byte*)malloc(header.ramdisk_size);
     fread(ramdisk, header.ramdisk_size, 1, f);
     total_read += header.ramdisk_size;
@@ -148,36 +154,54 @@ int unpackbootimg_main(int argc, char** argv)
     }
     
     FILE *r = fopen(tmp, "wb");
+    if(!r){
+        free(ramdisk);
+        fclose(f);
+        return 1;
+    }
     fwrite(ramdisk, header.ramdisk_size, 1, r);
     fclose(r);
-
+    free(ramdisk);
     total_read += read_padding(f, header.ramdisk_size, pagesize);
     printf("Extracting second...\n");
     sprintf(tmp, "%s/%s", directory, "second");
     FILE *s = fopen(tmp, "wb");
+    if(!s){
+        fclose(f);
+        return 1;
+    }
     byte* second = (byte*)malloc(header.second_size);
     //printf("Reading second...\n");
     fread(second, header.second_size, 1, f);
     total_read += header.second_size;
     fwrite(second, header.second_size, 1, r);
     fclose(s);
+    free(second);
 
     total_read += read_padding(f, header.second_size, pagesize);
     printf("Extracting dt.img...\n");
     sprintf(tmp, "%s/%s", directory, "dt.img");
     FILE *d = fopen(tmp, "wb");
+    if(!d){
+        fclose(f);
+        return 1;
+    }
     byte* dt = (byte*)malloc(header.dt_size);
     //printf("Reading dt...\n");
     fread(dt, header.dt_size, 1, f);
     total_read += header.dt_size;
     fwrite(dt, header.dt_size, 1, r);
     fclose(d);
-    
+    free(dt);
     fclose(f);
     // save configs
     printf("Saving configuretion...\n");
     sprintf(tmp, "%s/%s", directory, ".config");
     FILE *cfg = fopen(tmp, "wb");
+    if(!cfg){
+        fclose(f);
+        return 1;
+    }
     fwrite(&config, sizeof(config), 1, cfg);
     fclose(cfg);
     //printf("Total Read: %d\n", total_read);

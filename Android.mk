@@ -35,7 +35,7 @@ LOCAL_C_INCLUDES := src/include
 LOCAL_MODULE := invoker
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
-LOCAL_LDFLAGS := -static -fno-stack-protector
-LOCAL_CFLAGS := -DANDROID -fno-stack-protector
+LOCAL_LDFLAGS := -static -lc
+LOCAL_CFLAGS := -DANDROID
 
 include $(BUILD_EXECUTABLE)

@@ -127,7 +127,7 @@ int uncpio_main(int argc, char **argv)
         if (S_ISDIR(swrx)) {
             swrx = swrx & 0777;
             sprintf(tmp_path,"%s/%s",directory,name);
-            mkdir(tmp_path,swrx);
+            mkdir(tmp_path, swrx);
             fprintf(cpiolist, "dir %s 0%o 0 0\n", name, swrx);
             //fprintf(stdout, "dir %s 0%o 0 0\n", name, swrx);
             memset(tmp_path, 0, sizeof(tmp_path));

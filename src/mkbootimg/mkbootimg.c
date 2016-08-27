@@ -8,7 +8,7 @@
 **
 **     http://www.apache.org/licenses/LICENSE-2.0
 **
-** Unless required by applicable law or agreed to in writing, software
+** Unless required by applicable law or agreed to in Merging, software
 ** distributed under the License is distributed on an "AS IS" BASIS,
 ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ** See the License for the specific language governing permissions and
@@ -26,11 +26,12 @@
 #include "sha.h"
 #include "bootimg.h"
 
-static void *load_file(const char *fn, unsigned *_sz)
+static void *load_file(const char *fn, unsigned *_sz, char *image_type)
 {
     char *data;
     int sz;
     int fd;
+    int offset = 0;
 
     data = 0;
     fd = open(fn, O_RDONLY);
@@ -40,14 +41,38 @@ static void *load_file(const char *fn, unsigned *_sz)
     if(sz < 0) goto oops;
 
     if(lseek(fd, 0, SEEK_SET) != 0) goto oops;
-
-    data = (char*) malloc(sz);
+    if(image_type != NULL){
+        offset = MTK_MAGIC_SIZE;
+    }
+    data = (char*) malloc(sz + offset);
     if(data == 0) goto oops;
-
-    if(read(fd, data, sz) != sz) goto oops;
+    if(image_type != NULL){
+        printf("Merging Mediatek header...\n");
+        unsigned char size_hex[4];
+        int i;
+        data[0] = 0x88;
+        data[1] = 0x16;
+        data[2] = 0x88;
+        data[3] = 0x58;
+        sprintf(size_hex, "%08X", sz);
+        for(i = 4 ; i < 8 ; i++){
+            data[i] = size_hex[i-4];
+        }
+        if(!strcmp(fn, MTK_SIGNATURE_BOOT)){
+            for(i = 8; i < 14 ; i++)
+                data[i] = mtk_boot[i-8];
+        }
+        if(!strcmp(fn, MTK_SIGNATURE_RECOVERY)){
+            for(i = 8; i < 16 ; i++)
+                data[i] = mtk_recovery[i-8];
+        }
+        for(; i < 40; i++) data[i] = 0x00;
+        for(i = 40; i < MTK_MAGIC_SIZE; i++) data[i] = 0xFF;
+    }
+    if(read(fd, &data[offset], sz) != sz) goto oops;
     close(fd);
 
-    if(_sz) *_sz = sz;
+    if(_sz) *_sz = sz + offset;
     return data;
 
 oops:
@@ -77,28 +102,7 @@ int mkbootimg_usage(void)
     return 1;
 }
 
-
-
-// static unsigned char padding[131072] = { 0, };
-
-// int write_padding(int fd, unsigned pagesize, unsigned itemsize)
-// {
-//     unsigned pagemask = pagesize - 1;
-//     ssize_t count;
-
-//     if((itemsize & pagemask) == 0) {
-//         return 0;
-//     }
-
-//     count = pagesize - (itemsize & pagemask);
-
-//     if(write(fd, padding, count) != count) {
-//         return -1;
-//     } else {
-//         return 0;
-//     }
-// }
-static unsigned char padding[4096] = { 0, };
+static unsigned char padding[131072] = { 0, };
 
 int write_padding(int fd, unsigned pagesize, unsigned itemsize)
 {
@@ -117,36 +121,36 @@ int write_padding(int fd, unsigned pagesize, unsigned itemsize)
         return 0;
     }
 }
-void *gen_header(const char *fn, unsigned sz)
-{
-    unsigned char *data;
-    //char data_hex[8];
-    unsigned char size_hex[4];
-    int i;
-    data = (unsigned char *) malloc(MTK_MAGIC_SIZE);
-    data[0] = 0x88;
-    data[1] = 0x16;
-    data[2] = 0x88;
-    data[3] = 0x58;
-    sprintf(size_hex, "%08X", sz);
-    for(i = 4 ; i < 8 ; i++){
-        data[i] = size_hex[i-4];
-    }
-    if(!strcmp(fn, MTK_SIGNATURE_BOOT)){
-        for(i = 8; i < 14 ; i++)
-            data[i] = mtk_boot[i-8];
-    }
-    if(!strcmp(fn, MTK_SIGNATURE_RECOVERY)){
-        for(i = 8; i < 16 ; i++)
-            data[i] = mtk_recovery[i-8];
-    }
-    for(; i < 40; i++) data[i] = 0x00;
-    for(i = 40; i < MTK_MAGIC_SIZE; i++) data[i] = 0xFF;
-    return data;
-oops:
-    if(data != 0) free(data);
-    return 0;
-}
+// void *gen_header(const char *fn, unsigned sz)
+// {
+//     unsigned char *data;
+//     //char data_hex[8];
+//     unsigned char size_hex[4];
+//     int i;
+//     data = (unsigned char *) malloc(MTK_MAGIC_SIZE);
+//     data[0] = 0x88;
+//     data[1] = 0x16;
+//     data[2] = 0x88;
+//     data[3] = 0x58;
+//     sprintf(size_hex, "%08X", sz);
+//     for(i = 4 ; i < 8 ; i++){
+//         data[i] = size_hex[i-4];
+//     }
+//     if(!strcmp(fn, MTK_SIGNATURE_BOOT)){
+//         for(i = 8; i < 14 ; i++)
+//             data[i] = mtk_boot[i-8];
+//     }
+//     if(!strcmp(fn, MTK_SIGNATURE_RECOVERY)){
+//         for(i = 8; i < 16 ; i++)
+//             data[i] = mtk_recovery[i-8];
+//     }
+//     for(; i < 40; i++) data[i] = 0x00;
+//     for(i = 40; i < MTK_MAGIC_SIZE; i++) data[i] = 0xFF;
+//     return data;
+// oops:
+//     if(data != 0) free(data);
+//     return 0;
+// }
 int mkbootimg_main(int argc, char **argv)
 {
     boot_img_hdr hdr;
@@ -242,7 +246,7 @@ int mkbootimg_main(int argc, char **argv)
     char *image_type;
     if(config.image_type == MTK_IMAGE_BOOT){
         image_type = MTK_SIGNATURE_BOOT;
-    } else{
+    } else if(config.image_type == MTK_IMAGE_RECOVERY){
         image_type = MTK_SIGNATURE_RECOVERY;
     }
     strcpy((char *) hdr.name, board);
@@ -261,7 +265,7 @@ int mkbootimg_main(int argc, char **argv)
         strncpy((char *)hdr.extra_cmdline, cmdline, BOOT_EXTRA_ARGS_SIZE);
     }
 
-    kernel_data = load_file(kernel_fn, &hdr.kernel_size);
+    kernel_data = load_file(kernel_fn, &hdr.kernel_size, NULL);
     if(kernel_data == 0) {
         fprintf(stderr,"error: could not load kernel '%s'\n", kernel_fn);
         return 1;
@@ -271,7 +275,7 @@ int mkbootimg_main(int argc, char **argv)
         ramdisk_data = 0;
         hdr.ramdisk_size = 0;
     } else {
-        ramdisk_data = load_file(ramdisk_fn, &hdr.ramdisk_size);
+        ramdisk_data = load_file(ramdisk_fn, &hdr.ramdisk_size, image_type);
         if(ramdisk_data == 0) {
             fprintf(stderr,"error: could not load ramdisk '%s'\n", ramdisk_fn);
             return 1;
@@ -279,7 +283,7 @@ int mkbootimg_main(int argc, char **argv)
     }
 
     if(second_fn) {
-        second_data = load_file(second_fn, &hdr.second_size);
+        second_data = load_file(second_fn, &hdr.second_size, NULL);
         if(second_data == 0) {
             fprintf(stderr,"error: could not load secondstage '%s'\n", second_fn);
             return 1;
@@ -287,7 +291,7 @@ int mkbootimg_main(int argc, char **argv)
     }
 
     if(dt_fn) {
-        dt_data = load_file(dt_fn, &hdr.dt_size);
+        dt_data = load_file(dt_fn, &hdr.dt_size, NULL);
         if (dt_data == 0) {
             fprintf(stderr,"error: could not load device tree image '%s'\n", dt_fn);
             return 1;
@@ -320,30 +324,30 @@ int mkbootimg_main(int argc, char **argv)
 
     if(write(fd, &hdr, sizeof(hdr)) != sizeof(hdr)) goto fail;
     if(write_padding(fd, pagesize, sizeof(hdr))) goto fail;
-    printf("Writing kernel...\n");
+    printf("Merging kernel...\n");
     if(write(fd, kernel_data, hdr.kernel_size) != (ssize_t) hdr.kernel_size) goto fail;
     free(kernel_data);
     if(write_padding(fd, pagesize, hdr.kernel_size)) goto fail;
-    if(config.mtk_flag == 1) {
-        // generate Mediatek header
-        printf("Writing Mediatek header...\n");
-        void *mtk_hdr_data = gen_header(image_type, hdr.ramdisk_size);
-        if(write(fd, mtk_hdr_data, MTK_MAGIC_SIZE) != MTK_MAGIC_SIZE) goto fail;
-        free(mtk_hdr_data);
-    }
-    printf("Writing ramdisk...\n");
+    // if(config.mtk_flag == 1) {
+    //     // generate Mediatek header
+    //     printf("Merging Mediatek header...\n");
+    //     void *mtk_hdr_data = gen_header(image_type, hdr.ramdisk_size);
+    //     if(write(fd, mtk_hdr_data, MTK_MAGIC_SIZE) != MTK_MAGIC_SIZE) goto fail;
+    //     free(mtk_hdr_data);
+    // }
+    printf("Merging ramdisk...\n");
     if(write(fd, ramdisk_data, hdr.ramdisk_size) != (ssize_t) hdr.ramdisk_size) goto fail;
     free(ramdisk_data);
-    if(config.mtk_flag == 1)
-        hdr.ramdisk_size += MTK_MAGIC_SIZE;
+    // if(config.mtk_flag == 1)
+    //     hdr.ramdisk_size += MTK_MAGIC_SIZE;
     if(write_padding(fd, pagesize, hdr.ramdisk_size)) goto fail;
-    printf("Writing second...\n");
+    printf("Merging second...\n");
     if(second_data) {
         if(write(fd, second_data, hdr.second_size) != (ssize_t) hdr.second_size) goto fail;
         if(write_padding(fd, pagesize, hdr.second_size)) goto fail;
         free(second_data);
     }
-    printf("Writing dt.img...\n");
+    printf("Merging dt.img...\n");
     if(dt_data) {
         if(write(fd, dt_data, hdr.dt_size) != (ssize_t) hdr.dt_size) goto fail;
         if(write_padding(fd, pagesize, hdr.dt_size)) goto fail;
@@ -355,7 +359,7 @@ int mkbootimg_main(int argc, char **argv)
 fail:
     unlink(bootimg);
     close(fd);
-    fprintf(stderr,"error: failed writing '%s': %s\n", bootimg,
+    fprintf(stderr,"error: failed Merging '%s': %s\n", bootimg,
             strerror(errno));
     return 1;
 }

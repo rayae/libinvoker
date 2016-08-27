@@ -147,11 +147,11 @@ int unpackbootimg_main(int argc, char** argv)
     byte* ramdisk = (byte*)malloc(header.ramdisk_size);
     fread(ramdisk, header.ramdisk_size, 1, f);
     total_read += header.ramdisk_size;
-    if(ramdisk[0] == 0x02 && ramdisk[1] == 0x21){
-        sprintf(tmp, "%s/%s", directory, "ramdisk.cpio.lz4");
-    } else {
-        sprintf(tmp, "%s/%s", directory, "ramdisk.cpio.gz");
-    }
+    // if(ramdisk[0] == 0x02 && ramdisk[1] == 0x21){
+    //     sprintf(tmp, "%s/%s", directory, "ramdisk.cpio.lz4");
+    // } else {
+    sprintf(tmp, "%s/%s", directory, "ramdisk.cpio.gz");
+    //}
     
     FILE *r = fopen(tmp, "wb");
     if(!r){

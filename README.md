@@ -1,6 +1,4 @@
-# libmif
-
-The library called libmif (Library Of Mobile Image Factory).
+# libinvoker
 
 # Provide the following functions for the [ImageFactory](https://github.com/Crixec/ImageFactory)
 1. [unpackbootimg](https://github.com/Ud3v0id/mkbootimg/blob/master/unpackbootimg.c)

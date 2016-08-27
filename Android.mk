@@ -9,9 +9,6 @@ LOCAL_SRC_FILES += src/main/split_app.c
 LOCAL_SRC_FILES += src/toolbox/dd.c
 LOCAL_SRC_FILES += src/toolbox/envalid.c
 
-
-LOCAL_SRC_FILES += src/mkbootimg/mkbootimg.c src/mkbootimg/unpackbootimg.c src/mkbootimg/sha.c
-
 # libsparse
 LOCAL_SRC_FILES +=  src/libsparse/backed_block.c \
     src/libsparse/output_file.c \
@@ -29,13 +26,26 @@ LOCAL_SRC_FILES += src/libselinux/callbacks.c src/libselinux/check_context.c
 LOCAL_SRC_FILES += src/libselinux/freecon.c src/libselinux/init.c 
 LOCAL_SRC_FILES += src/libselinux/label.c src/libselinux/label_file.c src/libselinux/label_android_property.c
 
-LOCAL_SRC_FILES += src/invoker.c
 LOCAL_C_INCLUDES := src/include
-
-LOCAL_MODULE := invoker
-
-LOCAL_FORCE_STATIC_EXECUTABLE := true
-LOCAL_LDFLAGS := -static -lc
+LOCAL_MODULE := libinvoker_main
 LOCAL_CFLAGS := -DANDROID
 
+include $(BUILD_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES += src/mkbootimg/mkbootimg.c src/mkbootimg/unpackbootimg.c src/mkbootimg/sha.c
+LOCAL_C_INCLUDES := src/include
+LOCAL_MODULE := libbootimg
+LOCAL_CFLAGS := -DANDROID -fno-stack-protector
+include $(BUILD_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES += src/invoker.c
+LOCAL_CFLAGS := -DANDROID
+LOCAL_LDFLAGS := -static
+LOCAL_MODULE := invoker
+LOCAL_STATIC_LIBRARIES := libinvoker_main libbootimg
+LOCAL_FORCE_STATIC_EXECUTABLE := true
 include $(BUILD_EXECUTABLE)

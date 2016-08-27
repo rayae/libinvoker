@@ -83,22 +83,19 @@ static inline int check_mtk_header(unsigned char *data){
     return 0;
 } 
 static inline int get_mtk_image_type(unsigned char *data){
-    int i;
-    for(i = 4; i < 8; i++){
-        printf("%X ", data[i]);
-    }
-    printf("\n");
+    // int i;
+    // for(i = 4; i < 8; i++){
+    //     printf("%X ", data[i]);
+    // }
+    // printf("\n");
     if(data[4] == mtk_boot[0] && data[5] == mtk_boot[1] && data[6] == mtk_boot[2] && mtk_boot[7] == mtk_boot[3]){
         return MTK_IMAGE_BOOT;
     }
     return MTK_IMAGE_RECOVERY;
 }
 static inline void print_image_info(boot_img_hdr header){
-    char id[8];
-    sscanf(id, "%x", header.id);
     printf("Product Name\t:\t\'%s\'\n", header.name);
-    printf("Product ID\t:\t%x%x%x%x%x%x%x%x\n", header.id[0], header.id[1], header.id[2], header.id[3], header.id[4], header.id[5], header.id[6], header.id[7]);
-    //printf("Product ID\t:\t%s\n", id);
+    printf("Product ID\t:\t%02x%02x%02x%02x%02x%02x%02x%02x\n", header.id[0], header.id[1], header.id[2], header.id[3], header.id[4], header.id[5], header.id[6], header.id[7]);
     printf("Command Line\t:\t\'%s\'\n", header.cmdline);
     printf("Base Address\t:\t%08x\n", header.kernel_addr - 0x00008000);
     printf("Kernel Size\t:\t%d\n", header.kernel_size);

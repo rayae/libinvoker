@@ -105,7 +105,7 @@ int do_list(FILE * fp) {
 }
 int getStringLength(char *string){
     int i=0;
-    char ch=NULL;
+    char ch;
     while ( (ch = *(string + i)) != '\xFF' ) {
         i++;
     }

@@ -24,7 +24,7 @@ int usage(){
     printf("\tenvalid          change file permission to 0755\n");
     printf("\tuncpio           extract cpio archives\n");
     printf("\tmkcpio           make cpio archives\n");
-    printf("\tdd               minimal dd fucntion\n");
+    printf("\tdd               minimal dd function\n");
 	return 1;
 }
 
